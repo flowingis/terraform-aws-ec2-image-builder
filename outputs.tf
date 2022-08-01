@@ -4,12 +4,12 @@ output "component" {
 }
 
 output "component_name" {
-  description = "List of Name of the component."
+  description = "List of Name of the component"
   value       = [for k, v in aws_imagebuilder_component.this : v.name]
 }
 
 output "component_arn" {
-  description = "List of Arn of the component."
+  description = "List of Arn of the component"
   value       = [for k, v in aws_imagebuilder_component.this : v.arn]
 }
 
