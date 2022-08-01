@@ -1,9 +1,3 @@
-variable "create" {
-  description = "Controls whether resources should be created"
-  type        = bool
-  default     = true
-}
-
 variable "name" {
   description = "Generic resource name"
   type        = string
@@ -11,7 +5,7 @@ variable "name" {
 
 variable "components" {
   description = "Image Builder Component"
-  type        = map(string)
+  type        = any
   default     = {}
 }
 
@@ -28,13 +22,19 @@ variable "image_recipe_parent_image" {
 
 variable "image_recipe_version" {
   description = "Version of the image recipe"
-  type        = number
+  type        = string
 }
 
 variable "block_device_mapping" {
   description = "Configuration block(s) with block device mappings for the image recipe. Detailed below"
   type        = list(map(string))
   nullable    = true
+  default     = []
+}
+
+variable "component_external_arns" {
+  description = ""
+  type        = list(string)
   default     = []
 }
 
@@ -126,7 +126,7 @@ variable "infrastructure_configuration_s3_bucket_name" {
 variable "infrastructure_configuration_s3_key_prefix" {
   description = "Prefix to use for S3 logs"
   type        = string
-  default     = "/"
+  default     = null
 }
 
 variable "create_distribution_configuration" {
@@ -154,20 +154,20 @@ variable "distribution_configuration_region" {
 
 variable "ami_distribution_configuration" {
   description = "Configuration block with Amazon Machine Image (AMI) distribution settings"
-  type        = map(string)
-  default     = null
+  type        = any
+  default     = {}
 }
 
 variable "launch_permission" {
   description = "Configuration block of EC2 launch permissions to apply to the distributed AMI"
-  type        = map(string)
-  default     = null
+  type        = map(list(string))
+  default     = {}
 }
 
 variable "fast_launch_configuration" {
   description = "Set of Windows faster-launching configurations to use for AMI distribution"
   type        = map(string)
-  default     = null
+  default     = {}
 }
 
 variable "launch_template" {
@@ -209,10 +209,16 @@ variable "image_pipeline_status" {
 variable "image_tests_configuration" {
   description = "Configuration block with image tests configuration"
   type        = map(string)
-  default     = null
+  default     = {}
 }
 
-variable "image_pipeline_schedule_expression" {
+variable "image_tests_configuration_schedule_enabled" {
+  description = "Whether to enable schedule expression"
+  type        = bool
+  default     = false
+}
+
+variable "image_tests_configuration_schedule_expression" {
   description = "Cron expression of how often the pipeline start condition is evaluated"
   type        = string
   default     = null
@@ -221,19 +227,19 @@ variable "image_pipeline_schedule_expression" {
 variable "image_recipe_arn" {
   description = "Amazon Resource Name (ARN) of the image recipe"
   type        = string
-  default     = null
+  default     = ""
 }
 
 variable "infrastructure_configuration_arn" {
   description = "mazon Resource Name (ARN) of the Image Builder Infrastructure Configuration"
   type        = string
-  default     = null
+  default     = ""
 }
 
 variable "distribution_configuration_arn" {
   description = "Amazon Resource Name (ARN) of the Image Builder Distribution"
   type        = string
-  default     = null
+  default     = ""
 }
 
 variable "tags" {

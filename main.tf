@@ -1,5 +1,5 @@
 locals {
-  create = var.create
+  component_external_arns = [for external_arn in var.component_external_arns : { name = split("/", external_arn)[1], arn = external_arn }]
 }
 
 resource "aws_imagebuilder_component" "this" {
@@ -17,7 +17,7 @@ resource "aws_imagebuilder_component" "this" {
 }
 
 resource "aws_imagebuilder_image_recipe" "this" {
-  count = local.create && var.create_image_recipe ? 1 : 0
+  count = var.create_image_recipe ? 1 : 0
 
   name         = var.name
   parent_image = var.image_recipe_parent_image
@@ -26,12 +26,13 @@ resource "aws_imagebuilder_image_recipe" "this" {
   dynamic "block_device_mapping" {
     for_each = var.block_device_mapping
     content {
-      device_name  = lookup(block_device_mapping.value, "device_name", "/dev/xvdb")
+      device_name  = lookup(block_device_mapping.value, "device_name", null)
       no_device    = lookup(block_device_mapping.value, "no_device", null)
       virtual_name = lookup(block_device_mapping.value, "virtual_name", null)
 
       dynamic "ebs" {
-        for_each = var.ebs
+        for_each = var.block_device_mapping
+
         content {
           delete_on_termination = lookup(block_device_mapping.value, "delete_on_termination", null)
           iops                  = lookup(block_device_mapping.value, "iops", null)
@@ -45,12 +46,12 @@ resource "aws_imagebuilder_image_recipe" "this" {
   }
 
   dynamic "component" {
-    for_each = { for component in var.components : component.name => component }
+    for_each = { for component in concat(local.component_external_arns, var.components) : component.name => component }
     content {
-      component_arn = aws_imagebuilder_component.this[component.name].arn
+      component_arn = try(aws_imagebuilder_component.this[component.value["name"]].arn, component.value["arn"])
 
       dynamic "parameter" {
-        for_each = [for parameter in try(component.parameters, []) : parameter]
+        for_each = { for name, value in lookup(component.value, "parameters", {}) : name => value }
         content {
           name  = parameter.key
           value = parameter.value
@@ -63,7 +64,7 @@ resource "aws_imagebuilder_image_recipe" "this" {
 }
 
 resource "aws_imagebuilder_infrastructure_configuration" "this" {
-  count = local.create && var.create_infrastructure_configuration ? 1 : 0
+  count = var.create_infrastructure_configuration ? 1 : 0
 
   name                          = var.name
   description                   = var.infrastructure_configuration_description
@@ -75,10 +76,11 @@ resource "aws_imagebuilder_infrastructure_configuration" "this" {
   subnet_id                     = var.infrastructure_configuration_subnet_id
   terminate_instance_on_failure = var.infrastructure_configuration_terminate_instance_on_failure
 
-  logging {
-    dynamic "s3_logs" {
-      for_each = var.infrastructure_configuration_s3_logs_enabled ? [1] : []
-      content {
+  dynamic "logging" {
+    for_each = var.infrastructure_configuration_s3_logs_enabled ? [1] : []
+
+    content {
+      s3_logs {
         s3_bucket_name = var.infrastructure_configuration_s3_bucket_name
         s3_key_prefix  = var.infrastructure_configuration_s3_key_prefix
       }
@@ -90,7 +92,7 @@ resource "aws_imagebuilder_infrastructure_configuration" "this" {
 }
 
 resource "aws_imagebuilder_distribution_configuration" "this" {
-  count = local.create && var.create_distribution_configuration ? 1 : 0
+  count = var.create_distribution_configuration ? 1 : 0
 
   name        = var.name
   description = var.distribution_configuration_description
@@ -99,21 +101,21 @@ resource "aws_imagebuilder_distribution_configuration" "this" {
     region = var.distribution_configuration_region
 
     dynamic "ami_distribution_configuration" {
-      for_each = var.ami_distribution_configuration
+      for_each = [var.ami_distribution_configuration]
       content {
-        name               = lookup(ami_distribution_configuration.value, "name", null)
+        name               = "${lookup(ami_distribution_configuration.value, "name", null)}-{{ imagebuilder:buildDate }}"
         description        = lookup(ami_distribution_configuration.value, "description", null)
         kms_key_id         = lookup(ami_distribution_configuration.value, "kms_key_id", null)
-        target_account_ids = lookup(ami_distribution_configuration.value, "target_account_ids", null)
-        ami_tags           = lookup(ami_distribution_configuration.value, "ami_tags", null)
+        target_account_ids = try(ami_distribution_configuration.value["target_account_ids"], null)
+        ami_tags           = lookup(ami_distribution_configuration.value, "ami_tags", {})
 
         dynamic "launch_permission" {
-          for_each = var.ami_distribution_configuration != null ? [var.launch_permission] : []
+          for_each = var.ami_distribution_configuration != "" ? [var.launch_permission] : []
           content {
-            organization_arns        = lookup(launch_permission.value, "organization_arns", null)
-            organizational_unit_arns = lookup(launch_permission.value, "organizational_unit_arns", null)
-            user_groups              = lookup(launch_permission.value, "user_groups", null)
-            user_ids                 = lookup(launch_permission.value, "user_ids", null)
+            organization_arns        = try(launch_permission.value["organization_arns"], [])
+            organizational_unit_arns = try(launch_permission.value["organizational_unit_arns"], [])
+            user_groups              = try(launch_permission.value["user_groups"], [])
+            user_ids                 = try(launch_permission.value["user_ids"], [])
           }
         }
       }
@@ -129,20 +131,20 @@ resource "aws_imagebuilder_distribution_configuration" "this" {
         dynamic "launch_template" {
           for_each = var.fast_launch_configuration != null ? [var.launch_template] : []
           content {
-            launch_template_id      = lookup(launch_template.value, "launch_template_id", null)
-            launch_template_name    = lookup(launch_template.value, "launch_template_name", null)
-            launch_template_version = lookup(launch_template.value, "launch_template_version", null)
+            launch_template_id      = try(launch_template.value["launch_template_id"], [])
+            launch_template_name    = try(launch_template.value["launch_template_name"], [])
+            launch_template_version = try(launch_template.value["launch_template_version"], [])
           }
         }
       }
     }
 
     dynamic "launch_template_configuration" {
-      for_each = var.launch_template_configuration
+      for_each = var.launch_template_configuration != null ? [var.launch_template_configuration] : []
       content {
-        default            = lookup(launch_template_configuration.value, "default", null)
-        account_id         = lookup(launch_template_configuration.value, "account_id", null)
-        launch_template_id = lookup(launch_template_configuration.value, "launch_template_id", null)
+        default            = try(launch_template_configuration.value["default"], null)
+        account_id         = try(launch_template_configuration.value["account_id"], null)
+        launch_template_id = try(launch_template_configuration.value["launch_template_id"], null)
       }
     }
 
@@ -152,7 +154,7 @@ resource "aws_imagebuilder_distribution_configuration" "this" {
 }
 
 resource "aws_imagebuilder_image_pipeline" "this" {
-  count = local.create && var.image_pipeline ? 1 : 0
+  count = var.image_pipeline ? 1 : 0
 
   name                             = var.name
   description                      = var.image_pipeline_description
@@ -170,8 +172,12 @@ resource "aws_imagebuilder_image_pipeline" "this" {
     }
   }
 
-  schedule {
-    schedule_expression = var.image_pipeline_schedule_expression
+  dynamic "schedule" {
+    for_each = var.image_tests_configuration_schedule_enabled ? [1] : []
+
+    content {
+      schedule_expression = var.image_tests_configuration_schedule_expression
+    }
   }
 
   tags = merge({ "Name" = var.name }, var.tags)
