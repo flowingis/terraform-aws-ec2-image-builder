@@ -14,8 +14,14 @@ variable "account_id" {
   sensitive   = true
 }
 
-variable "launch_template_id" {
-  description = "The ID of the Amazon EC2 launch template to use"
+variable "launch_template_id_1" {
+  description = "The ID of the Amazon EC2 launch template one"
+  type        = string
+  sensitive   = true
+}
+
+variable "launch_template_id_2" {
+  description = "The ID of the Amazon EC2 launch template two"
   type        = string
   sensitive   = true
 }

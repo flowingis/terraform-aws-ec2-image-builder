@@ -118,7 +118,7 @@ module "imagebuilder" {
   distribution_configuration_region = var.region
 
   ami_distribution_configuration = {
-    name = "image"
+    name = var.name
 
     ami_tags = {
       CostCenter = "IT"
@@ -130,10 +130,16 @@ module "imagebuilder" {
     user_ids = var.user_ids
   }
 
-  launch_template_configuration = {
-    launch_template_id = var.launch_template_id
-    account_id         = var.account_id
-  }
+  launch_template_configuration = [
+    {
+      launch_template_id = var.launch_template_id_1
+      account_id         = var.account_id
+    },
+    {
+      launch_template_id = var.launch_template_id_2
+      account_id         = var.account_id
+    }
+  ]
 
   image_tests_configuration_schedule_enabled    = true
   image_tests_configuration_schedule_expression = "cron(0 0 * * ? *)"

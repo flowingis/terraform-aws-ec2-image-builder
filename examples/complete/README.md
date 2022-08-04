@@ -29,12 +29,14 @@ Choose the appropriate method to automatically specify these values, like descri
 
 | Name                                                                      | Version  |
 |---------------------------------------------------------------------------|----------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.1.0 |
-| <a name="requirement_tfe"></a> [aws](#requirement\aws)                    | ~> 4.4   |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.1.0 |
+| <a name="requirement_tfe"></a> [aws](#requirement\aws)                    | >= 4.20  |
 
 ## Providers
 
-No providers.
+| Name                                              | Version |
+|---------------------------------------------------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.20 |
 
 ## Modules
 
@@ -44,17 +46,25 @@ No providers.
 
 ## Resources
 
-No resources.
+| Name                                                                                                                                                       | Type     |
+|------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
+| [aws_iam_role.iam_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role)                                              | resource |
+| [aws_iam_instance_profile.istance_profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_account_alias)                  | resource |
+| [aws_iam_role_policy_attachment.policy_attachment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile)       | resource |
+| [aws_s3_bucket.bucket_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket)                                         | resource |
+| [aws_s3_bucket_public_access_block.bucket_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
+| [aws_s3_bucket_acl.bucket_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_acl)                                 | resource |
 
 ## Inputs
 
-| Name                                                                                       | Description                                              | Type           | Default | Required |
-|--------------------------------------------------------------------------------------------|----------------------------------------------------------|----------------|---------|:--------:|
-| <a name="input_region"></a> [region](#input\_region)                                       | Region where resources are created                       | `string`       | n/a     |   yes    |
-| <a name="input_name"></a> [name](#input\_name)                                             | Generic resource name                                    | `string`       | n/a     |   yes    |
-| <a name="input_account_id"></a> [account\_id](#account\_id)                                | The account ID used in the launch template configuration | `string`       | n/a     |   yes    |
-| <a name="input_slack_notification_url"></a> [launch\_template\_id](#ilaunch\_template\_id) | The ID of the Amazon EC2 launch template to use          | `list(string)` | n/a     |   yes    |
-| <a name="input_tfc_token"></a> [user\_ids](#iuser\_ids)                                    | Set of AWS Account user in the launch_permission         | `string`       | n/a     |   yes    |
+| Name                                                                                     | Description                                              | Type     | Default | Required |
+|------------------------------------------------------------------------------------------|----------------------------------------------------------|----------|---------|:--------:|
+| <a name="input_region"></a> [region](#input\_region)                                     | Region where resources are created                       | `string` | `n/a`   |   yes    |
+| <a name="input_name"></a> [name](#input\_name)                                           | Generic resource name                                    | `string` | `n/a`   |   yes    |
+| <a name="input_account_id"></a> [account\_id](#account\_id)                              | The account ID used in the launch template configuration | `string` | `n/a`   |   yes    |
+| <a name="launch_template_id_1"></a> [launch\_template\_id\_1](#ilaunch\_template\_id\_1) | The ID of the Amazon EC2 launch template one             | `string` | `n/a`   |   yes    |
+| <a name="launch_template_id_2"></a> [launch\_template\_id\_2](#ilaunch\_template\_id\_2) | The ID of the Amazon EC2 launch template two             | `string` | `n/a`   |   yes    |
+| <a name="input_tfc_token"></a> [user\_ids](#iuser\_ids)                                  | Set of AWS Account user in the launch_permission         | `string` | `n/a`   |   yes    |
 
 ## Outputs
 
