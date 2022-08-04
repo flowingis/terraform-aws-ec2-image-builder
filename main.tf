@@ -140,7 +140,7 @@ resource "aws_imagebuilder_distribution_configuration" "this" {
     }
 
     dynamic "launch_template_configuration" {
-      for_each = var.launch_template_configuration != null ? [var.launch_template_configuration] : []
+      for_each = var.launch_template_configuration
       content {
         default            = try(launch_template_configuration.value["default"], null)
         account_id         = try(launch_template_configuration.value["account_id"], null)

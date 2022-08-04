@@ -33,7 +33,7 @@ variable "block_device_mapping" {
 }
 
 variable "component_external_arns" {
-  description = ""
+  description = "Components created externally"
   type        = list(string)
   default     = []
 }
@@ -118,7 +118,7 @@ variable "infrastructure_configuration_s3_logs_enabled" {
 }
 
 variable "infrastructure_configuration_s3_bucket_name" {
-  description = "Name of the S3 Bucket."
+  description = "Name of the S3 Bucket"
   type        = string
   default     = null
 }
@@ -178,8 +178,8 @@ variable "launch_template" {
 
 variable "launch_template_configuration" {
   description = "Set of launch template configuration settings that apply to image distribution"
-  type        = map(string)
-  default     = null
+  type        = list(map(string))
+  default     = []
 }
 
 variable "image_pipeline" {
@@ -231,7 +231,7 @@ variable "image_recipe_arn" {
 }
 
 variable "infrastructure_configuration_arn" {
-  description = "mazon Resource Name (ARN) of the Image Builder Infrastructure Configuration"
+  description = "Amazon Resource Name (ARN) of the Image Builder Infrastructure Configuration"
   type        = string
   default     = ""
 }

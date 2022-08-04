@@ -39,7 +39,7 @@ output "infrastructure_configuration_name" {
 }
 
 output "infrastructure_configuration_arn" {
-  description = "arn of the infrastructure configuration"
+  description = "Arn of the infrastructure configuration"
   value       = try(aws_imagebuilder_infrastructure_configuration.this[0].arn, "")
 }
 
